@@ -105,15 +105,12 @@ final class LibrarySync {
     let dir = profile.metadataDir
     for start in stride(from: 0, to: stems.count, by: 12) {
       let chunk = Array(stems[start..<min(start + 12, stems.count)])
-      let got = await withTaskGroup(of: (String, Data?).self, returning: [(String, Data?)].self) { group in
-        for stem in chunk {
-          group.addTask { @MainActor in (stem, try? await dropbox.downloadData("\(dir)/\(stem).json")) }
-        }
-        var results: [(String, Data?)] = []
-        for await r in group { results.append(r) }
-        return results
+      // Plain tasks: a task group here trips the region-isolation checker (Xcode 26.6).
+      let tasks = chunk.map { stem in Task { (stem, try? await dropbox.downloadData("\(dir)/\(stem).json")) } }
+      for t in tasks {
+        let (stem, data) = await t.value
+        if let data { out[stem.lowercased()] = data }
       }
-      for (stem, data) in got { if let data { out[stem.lowercased()] = data } }
       progress?(min(start + 12, stems.count))
     }
     return out
