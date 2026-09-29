@@ -1,0 +1,70 @@
+#!/usr/bin/expect -f
+# End-to-end smoke test in a real PTY (macOS built-in expect). Muted, separate state file.
+# Run with e2e/run.sh (it sets the HUM_E2E_* values from your library).
+set timeout 15
+set env(HUM_MUTE) 1
+set env(HUM_STATE) .cache/e2e-state.json
+file delete -force .cache/e2e-state.json .cache/e2e-state-favorites.json
+set stty_init "rows 24 cols 80"
+proc check {label pattern} {
+  expect {
+    -re $pattern { puts "\nok   $label" }
+    timeout { puts "\nFAIL $label"; exit 1 }
+    eof { puts "\nFAIL $label (exited)"; exit 1 }
+  }
+}
+
+spawn bun src/main.ts {*}$env(HUM_E2E_PAIR)
+check "first frame" "PLAYING|PAUSED|LOADING"
+check "filter from args" $env(HUM_E2E_PAIR)
+check "rolling list: played / now / next" "↑ PLAYED.*NOW.{0,20}▶.*↓ NEXT"
+check "starts playing" "PLAYING"
+send "l"
+check "like" "♥ LIKED"
+send "4"
+check "favourites view" "FAVOURITES.{0,12}1 song "
+send "x"
+check "unlike from the list" "nothing yet"
+send "1"
+send "d"
+check "dedupe off" "EVERY LENGTH AND VERSION"
+send "d"
+check "dedupe on" "ONE VERSION PER SONG"
+send "?"
+check "help opens" "PLAYBACK"
+send "\033"
+send "3"
+check "tree view" $env(HUM_E2E_FILES)
+send "j"
+send "\r"
+check "tree folder collapses" "▸ $env(HUM_E2E_CHILD)"
+send "2"
+check "queue view" "QUEUE  "
+send "1"
+send "/"
+check "filter prompt" "FILTER ›"
+send $env(HUM_E2E_AMBIG)
+check "ambiguous prefix" $env(HUM_E2E_AMBIG_HINT)
+send "\025all\r"
+check "all clears the filter" "FILTER.{0,12}everything"
+send "/"
+send "$env(HUM_E2E_TAB_IN)\t"
+check "tab completes" $env(HUM_E2E_TAB_OUT)
+send "\r"
+check "filter applied" $env(HUM_E2E_TAB_OUT)
+send "s"
+send "r"
+check "repeat cycles" "RPT:ONE"
+send "f"
+send [string tolower $env(HUM_E2E_WORD)]
+check "search" $env(HUM_E2E_WORD)
+send "\033"
+send "n"
+check "next track plays" "PLAYING"
+send "q"
+expect {
+  -re "\033\\\[\\?1049l" { puts "\nok   terminal restored" }
+  timeout { puts "\nFAIL terminal restore"; exit 1 }
+}
+expect eof
+puts "\nall passed"

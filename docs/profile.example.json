@@ -1,0 +1,11 @@
+{
+  "label": "My Library",
+  "root": "/music/library",
+  "tracks": "audio",
+  "metadata": "meta",
+  "dimensions": ["time", "colour", "shade"],
+  "order": ["dawn", "noon", "dusk", "night", "light", "mid", "dark"],
+  "variant": { "dimension": 2, "prefer": "mid", "fallback": ["light", "dark"] },
+  "artQuery": "w={size}&h={size}&fit=crop",
+  "defaultFilter": ""
+}

@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": [
+      "ESNext"
+    ],
+    "types": [
+      "bun"
+    ],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@hum/core/*": [
+        "./packages/core/src/*.ts"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "test",
+    "packages/core/src"
+  ]
+}

@@ -1,0 +1,8 @@
+packages:
+  - packages/*
+  - web
+
+storeDir: .cache/pnpm/store
+cacheDir: .cache/pnpm/cache
+stateDir: .cache/pnpm/state
+

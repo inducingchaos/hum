@@ -1,0 +1,27 @@
+{
+  "name": "hum",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "play": "bun src/main.ts",
+    "auth": "bun src/cli/auth.ts",
+    "sync": "bun src/cli/sync.ts",
+    "cache:clear": "bun src/cli/cache-clear.ts",
+    "explore": "bun src/cli/explore.ts",
+    "test": "bun test test/",
+    "test:engine": "bun src/cli/engine-smoke.ts",
+    "test:player": "bun src/cli/player-smoke.ts",
+    "test:keys": "bun src/cli/engine-smoke.ts --keys",
+    "test:e2e": "sh e2e/run.sh",
+    "typecheck": "tsc --noEmit",
+    "web": "pnpm --filter web dev",
+    "web:check": "pnpm --filter web check"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.2",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@hum/core": "workspace:*"
+  }
+}

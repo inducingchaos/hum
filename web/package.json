@@ -1,0 +1,31 @@
+{
+  "name": "web",
+  "private": true,
+  "type": "module",
+  "description": "hum: the iPhone PWA player. See docs/plan-web.md.",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test test/",
+    "check": "tsc --noEmit && bun test test/ && vite build",
+    "e2e": "vite build && node e2e/smoke.mjs",
+    "shots": "vite build && node e2e/shots.mjs"
+  },
+  "dependencies": {
+    "@fontsource-variable/geist-mono": "5.3.0",
+    "@hum/core": "workspace:*",
+    "@preact/signals": "^2.11.2",
+    "fflate": "^0.8.3",
+    "preact": "^10.29.8"
+  },
+  "devDependencies": {
+    "@breezystack/lamejs": "1.2.7",
+    "@preact/preset-vite": "^2.10.6",
+    "@types/bun": "^1.4.2",
+    "playwright-core": "1.56.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1"
+  }
+}

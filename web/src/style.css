@@ -1,0 +1,437 @@
+/* hum (turn 14): monochrome, after the owner's ALTERED editor. Geist Mono at one
+   size, rows padded 1ch × 3ch, hairline rules, a selected row is a lighter band.
+   One accent (#FF8000), used sparingly. No rounded corners, no shadows, no motion. */
+:root {
+  --bg: #0c0c0c;
+  --row: #161616; /* selected / now row */
+  --press: #1c1c1c;
+  --line: #222;
+  --fg: #ececec;
+  --mid: #9a9a9a;
+  --dim: #5f5f5f;
+  --accent: #ff8000;
+  --size: 13px;
+  --px: 3ch;
+  --py: 1ch;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font: var(--size) / 1.5 "Geist Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
+  font-variant-ligatures: none;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+
+body {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+}
+button:active {
+  background: var(--press);
+}
+
+input {
+  font: inherit;
+  color: var(--fg);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  width: 100%;
+  -webkit-user-select: text;
+  user-select: text;
+}
+input::placeholder {
+  color: var(--dim);
+}
+
+.dim { color: var(--dim); }
+.mid { color: var(--mid); }
+.accent { color: var(--accent); }
+.err { color: var(--accent); }
+.grow { flex: 1; }
+.center { flex: 1; display: grid; place-items: center; padding: var(--px); }
+
+.screen {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+}
+
+/* ── header: like ALTERED's search bar ─ */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 2ch;
+  padding: calc(var(--py) * 1.5) var(--px);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.brand {
+  font-weight: 600;
+}
+.header .status {
+  margin-left: auto;
+  color: var(--dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── now ────────────────────────────── */
+.now {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.hero {
+  padding: calc(var(--py) * 2) var(--px) var(--py);
+}
+.title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 2ch;
+  padding: 0 var(--px);
+}
+.bar {
+  flex: 1;
+  height: 32px; /* touch target; the visible line is 2px */
+  position: relative;
+  touch-action: none;
+}
+.bar::before,
+.fill {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 15px;
+  height: 2px;
+}
+.bar::before {
+  right: 0;
+  background: var(--line);
+}
+.fill {
+  background: var(--fg);
+}
+.time {
+  color: var(--mid);
+  font-variant-numeric: tabular-nums;
+}
+.status-row {
+  display: flex;
+  align-items: center;
+  padding: 0 calc(var(--px) - 1ch);
+  white-space: nowrap;
+}
+.tog {
+  color: var(--dim);
+  padding: var(--py) 1ch;
+}
+.tog.on {
+  color: var(--fg);
+}
+.state {
+  padding: var(--py) 1ch;
+  color: var(--mid);
+}
+.state .dot {
+  color: var(--accent);
+}
+.count {
+  margin-left: auto;
+  padding: var(--py) 1ch;
+  color: var(--dim);
+}
+.filter {
+  display: flex;
+  gap: 2ch;
+  width: 100%;
+  padding: var(--py) var(--px);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.filter .q {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.notice {
+  padding: var(--py) var(--px) 0;
+  color: var(--accent);
+}
+
+/* ── filter sheet ───────────────────── */
+.editor {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  border-top: 1px solid var(--line);
+}
+.editor form {
+  display: flex;
+  gap: 2ch;
+  padding: var(--py) var(--px);
+  border-bottom: 1px solid var(--line);
+}
+.facet {
+  padding: var(--py) var(--px) 0;
+}
+.facet-name {
+  color: var(--dim);
+  padding-bottom: 0.5ch;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1ch;
+}
+.chip {
+  border: 1px solid var(--line);
+  padding: 0.5ch 1.25ch;
+  color: var(--mid);
+}
+.chip.on {
+  border-color: var(--fg);
+  color: var(--fg);
+  background: var(--row);
+}
+.chip.none {
+  color: var(--dim);
+  opacity: 0.5;
+}
+.editor .err {
+  padding: var(--py) var(--px) 0;
+}
+.editor .actions {
+  display: flex;
+  margin-top: calc(var(--py) * 2);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.editor .actions button {
+  flex: 1;
+  padding: calc(var(--py) * 1.5) var(--px);
+  text-align: center;
+}
+.editor .actions button + button {
+  border-left: 1px solid var(--line);
+}
+.editor .actions .primary {
+  font-weight: 600;
+}
+
+/* ── rows (rolling list, queue) ──────── */
+.rolling,
+.list {
+  flex: 1;
+  min-height: 0;
+}
+.rolling {
+  overflow: hidden;
+}
+.list {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.sect {
+  color: var(--dim);
+  padding: var(--py) var(--px) 0.25ch;
+}
+.lrow {
+  display: flex;
+  align-items: baseline;
+  gap: 2ch;
+  width: 100%;
+  padding: var(--py) var(--px);
+  white-space: nowrap;
+}
+.lrow .mk {
+  width: 1ch;
+  flex: none;
+  color: var(--dim);
+}
+.lrow .nm {
+  flex: none;
+  max-width: 62%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lrow .pth {
+  flex: 1;
+  min-width: 0;
+  color: var(--dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+.lrow.played .nm {
+  color: var(--dim);
+}
+.lrow.nowrow {
+  background: var(--row);
+}
+.lrow.nowrow .nm {
+  font-weight: 600;
+}
+.lrow.nowrow .mk {
+  color: var(--accent);
+}
+.lrow .mk.cached {
+  color: var(--mid);
+}
+
+/* ── bottom bars: like ALTERED's footer ─ */
+.transport,
+.tabs {
+  display: flex;
+  border-top: 1px solid var(--line);
+}
+.transport button,
+.tabs button {
+  flex: 1;
+  text-align: center;
+  padding: calc(var(--py) * 1.75) 0;
+}
+.transport button + button,
+.tabs button + button {
+  border-left: 1px solid var(--line);
+}
+.transport .play {
+  font-weight: 600;
+}
+.tabs {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tabs button {
+  color: var(--dim);
+}
+.tabs button.on {
+  color: var(--fg);
+}
+
+/* ── sign-in ────────────────────────── */
+.signin {
+  padding: calc(var(--py) * 3) var(--px);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--py) * 2);
+}
+.big {
+  border: 1px solid var(--fg);
+  padding: var(--py) 2ch;
+  font-weight: 600;
+  text-align: center;
+}
+.big:disabled {
+  opacity: 0.4;
+}
+.link {
+  color: var(--mid);
+  padding: var(--py) 0;
+}
+.code {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--py) * 1.5);
+}
+.code textarea {
+  font: inherit;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  padding: var(--py);
+  resize: vertical;
+  outline: none;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.code input {
+  border-bottom: 1px solid var(--line);
+  padding: var(--py) 0;
+}
+
+/* ── sys ────────────────────────────── */
+.kvrow {
+  display: flex;
+  gap: 2ch;
+  justify-content: space-between;
+  padding: var(--py) var(--px);
+  border-bottom: 1px solid var(--line);
+}
+.kvrow span:first-child {
+  color: var(--dim);
+  flex: none;
+}
+.kvrow span:last-child {
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.btnrow {
+  display: flex;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--line);
+}
+.btnrow button {
+  flex: 1 0 auto;
+  padding: var(--py) var(--px);
+  color: var(--mid);
+  text-align: center;
+}
+.btnrow button + button {
+  border-left: 1px solid var(--line);
+}
+.btnrow button.on {
+  color: var(--fg);
+  background: var(--row);
+}
+.loghead {
+  color: var(--dim);
+  padding: calc(var(--py) * 2) var(--px) var(--py);
+}
+.log {
+  padding: 0 var(--px) calc(var(--py) * 2);
+  -webkit-user-select: text;
+  user-select: text;
+}
+.log div {
+  padding: 0.25ch 0;
+}
+.log .bg {
+  color: var(--mid);
+}

@@ -1,0 +1,42 @@
+#!/usr/bin/expect -f
+# Quit and relaunch resumes the same filter, song, and second. Also: lockfile, TOO SMALL.
+set timeout 20
+set env(HUM_MUTE) 1
+set env(HUM_STATE) .cache/e2e-resume.json
+file delete -force .cache/e2e-resume.json
+set stty_init "rows 24 cols 80"
+proc check {label pattern} {
+  expect {
+    -re $pattern { puts "\nok   $label" }
+    timeout { puts "\nFAIL $label"; exit 1 }
+    eof { puts "\nFAIL $label (exited)"; exit 1 }
+  }
+}
+
+spawn bun src/main.ts {*}$env(HUM_E2E_SMALL)
+set first $spawn_id
+check "playing" "PLAYING"
+# seek to 3:00 so the resumed time is unmistakable
+send "\033\[1;2C\033\[1;2C\033\[1;2C"
+check "seeked" "3:0\[0-9\] /"
+
+spawn bun src/main.ts
+check "second instance refused" "ALREADY RUNNING"
+expect eof
+
+set spawn_id $first
+send "q"
+expect eof
+
+spawn bun src/main.ts
+check "resumes filter" $env(HUM_E2E_SMALL)
+check "resumes position" "3:0\[0-9\] /"
+send "q"
+expect eof
+
+set stty_init "rows 10 cols 40"
+spawn bun src/main.ts
+check "too small" "TOO SMALL"
+send "q"
+expect eof
+puts "\nall passed"

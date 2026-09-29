@@ -1,0 +1,9 @@
+{
+  "name": "@hum/core",
+  "private": true,
+  "type": "module",
+  "description": "Pure library/queue/filter/search logic shared by the CLI and the web app. No Bun, Node or DOM APIs.",
+  "exports": {
+    "./*": "./src/*.ts"
+  }
+}
