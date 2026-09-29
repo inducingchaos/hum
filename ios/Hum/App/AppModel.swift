@@ -200,12 +200,16 @@ enum Phase: Equatable { case boot, signIn, syncing, ready }
   private func withElapsed<T>(_ show: @escaping (String) -> Void, _ fn: (@escaping (String) -> Void) async throws -> T) async throws -> T {
     let e = Elapsed(show)
     let timer = Task {
-      while !Task.isCancelled {
-        try? await Task.sleep(for: .seconds(1))
+      // A cancelled sleep returns at once: check again before rendering, or the
+      // old message comes back after the caller cleared it (turn 17 bug).
+      while (try? await Task.sleep(for: .seconds(1))) != nil, !Task.isCancelled {
         e.render()
       }
     }
-    defer { timer.cancel() }
+    defer {
+      timer.cancel()
+      e.done = true
+    }
     return try await fn { m in
       e.msg = m
       e.render()
@@ -215,6 +219,7 @@ enum Phase: Equatable { case boot, signIn, syncing, ready }
 
 private final class Elapsed {
   var msg = ""
+  var done = false
   let t0 = Date()
   let show: (String) -> Void
 
@@ -222,5 +227,7 @@ private final class Elapsed {
     self.show = show
   }
 
-  func render() { show("\(msg) · \(Int(Date().timeIntervalSince(t0))) s") }
+  func render() {
+    if !done { show("\(msg) · \(Int(Date().timeIntervalSince(t0))) s") }
+  }
 }

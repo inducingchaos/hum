@@ -12,6 +12,7 @@ protocol AudioEngine: AnyObject {
   var onTime: ((Double) -> Void)? { get set }
   var onFailed: ((_ id: String, _ message: String) -> Void)? { get set }
   var position: Double { get }
+  var itemDuration: Double { get }  // from the file itself; 0 until known
   var paused: Bool { get }
   var currentId: String? { get }
   func load(_ id: String, url: URL, at: Double, autoplay: Bool)
@@ -51,6 +52,11 @@ final class AVEngine: AudioEngine {
   }
 
   var currentId: String? { current?.id }
+
+  var itemDuration: Double {
+    let d = player.currentItem?.duration.seconds ?? 0
+    return d.isFinite && d > 0 ? d : 0
+  }
   var paused: Bool { player.timeControlStatus == .paused }
 
   var position: Double {

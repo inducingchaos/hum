@@ -1,5 +1,7 @@
 # XcodeGen spec (docs/plan-ios.md §12): `cd ios && xcodegen` makes Hum.xcodeproj.
 # The generated project is gitignored; this file is the source of truth.
+# Signing: `HUM_TEAM=<your team id> xcodegen` fills in the team, so a
+# regenerated project keeps it (Xcode → Settings → Accounts shows the id).
 name: Hum
 options:
   bundleIdPrefix: com.rileybarabash
@@ -11,6 +13,7 @@ settings:
   base:
     SWIFT_VERSION: "6.0"
     CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: ${HUM_TEAM}
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
     ENABLE_USER_SCRIPT_SANDBOXING: NO
@@ -41,7 +44,7 @@ targets:
         HumBuild: $(HUM_BUILD)
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.rileybarabash.hum
+        PRODUCT_BUNDLE_IDENTIFIER: com.rileybarabash.hum-fm
         PRODUCT_NAME: Hum
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -67,7 +70,7 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
-        PRODUCT_BUNDLE_IDENTIFIER: com.rileybarabash.hum.tests
+        PRODUCT_BUNDLE_IDENTIFIER: com.rileybarabash.hum-fm.tests
         SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
   HumUITests:
     type: bundle.ui-testing
@@ -78,7 +81,7 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
-        PRODUCT_BUNDLE_IDENTIFIER: com.rileybarabash.hum.uitests
+        PRODUCT_BUNDLE_IDENTIFIER: com.rileybarabash.hum-fm.uitests
         TEST_TARGET_NAME: Hum
 schemes:
   Hum:

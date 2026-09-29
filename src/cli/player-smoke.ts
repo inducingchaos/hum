@@ -15,7 +15,11 @@ const { dedupe, folderOf, groupKey } = await import("@hum/core/model");
 const { profile } = await import("../config.ts");
 
 if (helperIsStale()) await buildHelper();
-const lib = loadLibrary()!;
+const lib = loadLibrary();
+if (!lib) {
+  console.log("no library yet: run `pnpm play` once (it indexes the library), then run this again");
+  process.exit(1);
+}
 // A small leaf folder (fewest songs, at least 4) keeps downloads short. Picked
 // from the library itself, so no folder names live in this file.
 const counts = new Map<string, number>();

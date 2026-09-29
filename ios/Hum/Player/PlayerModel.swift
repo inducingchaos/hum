@@ -58,12 +58,19 @@ nonisolated struct SavedState: Codable, Sendable {
   // Play/pause intent while a load is still resolving its URL: a tap on Play
   // right after launch used to land on an empty player and be lost.
   private var wantsPlay = false
+  private var loading = false  // between load() and the engine playing it
   private var lastSave = Date.distantPast
   private let persist: Bool
   static let historyMax = 200
 
   var dimensions: [String] { profile.dimensions }
-  var duration: Double { current?.duration ?? 0 }
+  // The metadata's duration, else the file's own (tracks listed before the
+  // metadata arrived have none; turn 17: the bar sat at the end).
+  private(set) var engineDuration: Double = 0
+  var duration: Double {
+    if let d = current?.duration, d > 0 { return d }
+    return engineDuration
+  }
   var paused: Bool { !playing }
 
   init(profile: Profile, source: TrackSource, engine: AudioEngine, cache: AudioCache, remote: Bool = true, persist: Bool = true) {
@@ -192,6 +199,7 @@ nonisolated struct SavedState: Codable, Sendable {
 
   func pause() {
     wantsPlay = false
+    loading = false
     engine.pause()
   }
   func toggle() { playing ? pause() : play() }
@@ -269,11 +277,17 @@ nonisolated struct SavedState: Codable, Sendable {
     guard let t = byId[id] else { return }
     current = t
     position = at
+    engineDuration = 0
     notice = ""
     artwork = art.cached(t.id)
     loadToken += 1
     let token = loadToken
     wantsPlay = autoplay
+    loading = autoplay
+    if autoplay, !playing {
+      playing = true
+      buffering = true
+    }
     log("load \(t.name)\(at > 0 ? " at \(Int(at)) s" : "")\(autoplay ? "" : " (paused)")")
     updateNowPlaying()
     Task {
@@ -353,6 +367,7 @@ nonisolated struct SavedState: Codable, Sendable {
     guard let t = byId[id] else { return }
     current = t
     position = 0
+    engineDuration = 0
     artwork = art.cached(t.id)
     recordStart(t)
     updateNowPlaying()
@@ -368,14 +383,20 @@ nonisolated struct SavedState: Codable, Sendable {
   private func ended() {
     playing = false
     wantsPlay = false
+    loading = false
     say("END OF QUEUE")
     updateNowPlaying()
   }
 
   private func engineState(_ isPlaying: Bool, _ isBuffering: Bool) {
     let was = playing
-    playing = isPlaying || isBuffering
-    buffering = isBuffering
+    // A skip reloads the player, which reports "paused" for a moment; while a
+    // load we asked to play is in flight, show loading, not paused (turn 17:
+    // the lock screen flipped to paused on fast skips to uncached tracks).
+    let loadingToPlay = wantsPlay && loading
+    if isPlaying { loading = false }
+    playing = isPlaying || isBuffering || loadingToPlay
+    buffering = isBuffering || (loadingToPlay && !isPlaying)
     if isPlaying, let t = current { recordStart(t) }
     if was != playing {
       updateNowPlaying()
@@ -385,11 +406,19 @@ nonisolated struct SavedState: Codable, Sendable {
 
   private func tick(_ t: Double) {
     position = t
+    let d = engine.itemDuration
+    if d != engineDuration, engine.currentId == current?.id {
+      engineDuration = d
+      if (current?.duration ?? 0) <= 0 { updateNowPlaying() }
+    }
     save(force: false)
   }
 
   private func failed(_ id: String, _ msg: String, auth: Bool = false) {
     let name = byId[id]?.name ?? id
+    loading = false
+    playing = !engine.paused
+    buffering = false
     failuresInARow += 1
     if auth {
       say("DROPBOX SIGN-IN EXPIRED")
@@ -439,7 +468,7 @@ nonisolated struct SavedState: Codable, Sendable {
   private func updateNowPlaying() {
     guard let t = current else { return }
     nowPlaying?.update(
-      title: t.name, artist: t.album, album: profile.label, duration: t.duration, elapsed: position, playing: playing,
+      title: t.name, artist: t.album, album: profile.label, duration: duration, elapsed: position, playing: playing,
       art: artwork)
   }
 

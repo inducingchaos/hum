@@ -2,7 +2,8 @@
 import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { paths, profile } from "../config.ts";
-import { download, listAll, type ListEntry } from "../dropbox/client.ts";
+import { download, downloadZip, listAll, type ListEntry } from "../dropbox/client.ts";
+import { unzip } from "./zip.ts";
 import { log, readJson, writeJsonAtomic } from "../util.ts";
 import { LIBRARY_VERSION, type Library, type Track } from "@hum/core/model";
 import { metadataDir, tracksDir } from "@hum/core/profile";
@@ -88,9 +89,40 @@ async function buildTracks(files: FileEntry[], onProgress?: (done: number, total
   return files.map((f) => make(f, metas.get(stemOf(f.name)))).filter((t): t is Track => !!t);
 }
 
+// Fresh caches: fetch the whole metadata folder as ONE zip into .cache/meta/
+// (turn 17: one file at a time ran at ~30/s, minutes on a fresh clone).
+// Falls back to per-file downloads if the zip fails.
+async function fetchMetaZip(onProgress?: (msg: string) => void): Promise<number> {
+  const t0 = Date.now();
+  const timer = setInterval(() => onProgress?.(`ZIPPING METADATA · ${Math.floor((Date.now() - t0) / 1000)} s`), 1000);
+  try {
+    onProgress?.("ZIPPING METADATA · 0 s");
+    const zip = new Uint8Array(await (await downloadZip(metadataDir(profile()))).arrayBuffer());
+    clearInterval(timer);
+    onProgress?.("READING METADATA");
+    mkdirSync(paths.meta, { recursive: true });
+    let n = 0;
+    for (const { name, data } of unzip(zip)) {
+      const base = name.slice(name.lastIndexOf("/") + 1);
+      if (!base.toLowerCase().endsWith(".json")) continue;
+      await Bun.write(metaFile(stemOf(base)), data);
+      n++;
+    }
+    log("metadata zip", n, "files in", Date.now() - t0, "ms");
+    return n;
+  } catch (e) {
+    log("metadata zip failed", (e as Error).message);
+    return 0;
+  } finally {
+    clearInterval(timer);
+  }
+}
+
 export async function fullSync(onProgress?: (msg: string) => void): Promise<Library> {
   const { entries, cursor } = await listAll({ path: profile().root }, (n) => onProgress?.(`LISTING ${n.toLocaleString()}`));
   const files = entries.filter(isMp3).map((e) => ({ path_lower: e.path_lower, name: e.name, size: e.size ?? 0 }));
+  const missing = files.filter((f) => !existsSync(metaFile(stemOf(f.name)))).length;
+  if (missing > 50) await fetchMetaZip(onProgress);
   const tracks = await buildTracks(files, (d, t) => onProgress?.(`INDEXING ${d.toLocaleString()} / ${t.toLocaleString()}`));
   const lib: Library = { version: LIBRARY_VERSION, cursor, syncedAt: new Date().toISOString(), tracks };
   saveLibrary(lib);

@@ -15,7 +15,7 @@ proc check {label pattern} {
 }
 
 spawn bun src/main.ts {*}$env(HUM_E2E_PAIR)
-check "first frame" "PLAYING|PAUSED|LOADING"
+check "first frame" "⏻"
 check "filter from args" $env(HUM_E2E_PAIR)
 check "rolling list: played / now / next" "↑ PLAYED.*NOW.{0,20}▶.*↓ NEXT"
 check "starts playing" "PLAYING"

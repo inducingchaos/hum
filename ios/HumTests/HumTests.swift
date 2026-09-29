@@ -51,6 +51,7 @@ final class FakeEngine: AudioEngine {
   var onTime: ((Double) -> Void)?
   var onFailed: ((String, String) -> Void)?
   var position: Double = 0
+  var itemDuration: Double = 0
   var paused = true
   var currentId: String?
   var nextId: String?
@@ -138,6 +139,36 @@ func settle() async {
     await settle()
     #expect(p.current?.id == expected && p.queue.current == expected)
     #expect(p.history.last == first || p.history.contains(first))
+  }
+
+  // A skip shows "loading", never "paused", until the engine plays (lock screen).
+  @Test func skipStaysPlayingWhileLoading() async {
+    let (p, e) = await make()
+    p.play()
+    await settle()
+    #expect(p.playing && !e.paused)
+    e.pause()  // the reload's momentary pause, before the new item plays
+    p.next()
+    #expect(p.playing && p.buffering)
+    await settle()
+    #expect(p.playing && !p.buffering && !e.paused)
+    p.pause()
+    await settle()
+    #expect(!p.playing)
+  }
+
+  @Test func durationFallsBackToTheFile() async {
+    let e = FakeEngine()
+    let src = FakeSource()
+    let p = PlayerModel(profile: Demo.profile, source: src, engine: e, cache: AudioCache(source: src, cap: 10_000_000), remote: false, persist: false)
+    var lib = Demo.library()
+    lib.tracks = lib.tracks.map { var t = $0; t.duration = 0; return t }
+    p.start(lib)
+    await settle()
+    #expect(p.duration == 0)
+    e.itemDuration = 42
+    e.onTime?(1)
+    #expect(p.duration == 42)
   }
 
   @Test func filterAndErrors() async {

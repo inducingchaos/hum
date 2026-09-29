@@ -155,7 +155,7 @@ open Hum.xcodeproj
 ```
 
 In Xcode: target Hum → Signing & Capabilities → Team = your team (the bundle id is
-`com.rileybarabash.hum`). Pick your iPhone, Run. Put `profile.local.json` at the repo root before building
+`com.rileybarabash.hum-fm`, turn 17: `hum` was taken). To keep the team across `xcodegen` runs: `HUM_TEAM=<team id> xcodegen`. Pick your iPhone, Run. Put `profile.local.json` at the repo root before building
 to skip the paste step. TestFlight later if wanted (Product → Archive → Distribute).
 
 ## 13. Milestones

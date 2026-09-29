@@ -105,6 +105,17 @@ export async function download(path: string, signal?: AbortSignal): Promise<Resp
   return check(res, "download");
 }
 
+// A folder as one zip (read-only, files.content.read). Used for the metadata
+// folder on a fresh sync: one request instead of thousands.
+export async function downloadZip(path: string, signal?: AbortSignal): Promise<Response> {
+  const res = await request("https://content.dropboxapi.com/2/files/download_zip", {
+    method: "POST",
+    signal,
+    headers: { Authorization: `Bearer ${await accessToken()}`, "Dropbox-API-Arg": apiArg({ path }) },
+  });
+  return check(res, "download_zip");
+}
+
 // Temp links last 4 h; reuse them for 3.5 h.
 const links = new Map<string, { url: string; expiresAt: number }>();
 export async function temporaryLink(path: string): Promise<string> {

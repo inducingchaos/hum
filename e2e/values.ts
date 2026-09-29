@@ -5,7 +5,7 @@ import { vocabulary } from "@hum/core/filter";
 import { dedupe, folderOf, type Track } from "@hum/core/model";
 
 const lib = loadLibrary();
-if (!lib) throw new Error("no library yet: run `pnpm play` once");
+if (!lib) throw new Error("no library yet: run `pnpm play` once (it indexes the library), then run this again");
 const tracks = lib.tracks;
 const songs = dedupe(tracks);
 const byFolder = new Map<string, Track[]>();
