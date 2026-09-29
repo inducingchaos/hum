@@ -177,3 +177,8 @@ Created the private GitHub repo (now `inducingchaos/hum`, public since turn 16) 
 - hum was used only as a toolbox: the Linux Swift toolchain in `.cache/swift` ran that app's core tests, a repo-local venv in `.cache/venv` drew its icon, and hum's Geist Mono files (OFL) were copied into it. The iOS CI pattern (XcodeGen, `macos-26`, screenshots artifact) was reused from `.github/workflows/ios.yml`.
 - Lessons that apply to hum's own iOS app too: XCUITest's keyboard element excludes the suggestion strip, so layout tests should measure against the keyboard frame UIKit reports; a SwiftUI `.accessibilityIdentifier` on a container overrides its children's unless the container uses `.accessibilityElement(children: .contain)`; unit tests under default MainActor isolation should use Swift Testing (`@MainActor @Suite struct`), not `XCTestCase`.
 - **Next:** unchanged from turn 17.
+
+## 2026-09-29 · Turn 21: the other project's editor goes green (model: Opus 5.5)
+
+- After a context compaction, finished turn 20's work in the other repo: its iOS CI passed all UI tests, and the branch was merged to that repo's `main`. Nothing in hum changed except this log.
+- **Next:** unchanged from turn 17.
