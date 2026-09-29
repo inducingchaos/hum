@@ -4,6 +4,7 @@
 import CryptoKit
 import Foundation
 import HumCore
+import Security
 
 enum DropboxError: Error, CustomStringConvertible {
   case auth(String)
@@ -244,12 +245,13 @@ final class Dropbox {
   // Whole file to a temporary location; the caller moves it.
   func download(_ path: String) async throws -> URL {
     let req = try await contentRequest("files/download", path)
-    let (tmp, res): (URL, URLResponse)
+    let result: (URL, URLResponse)
     do {
-      (tmp, res) = try await session.download(for: req)
+      result = try await session.download(for: req)
     } catch let e as URLError where e.code != .cancelled {
       throw DropboxError.network(e.localizedDescription)
     }
+    let (tmp, res) = result
     let http = res as! HTTPURLResponse
     if !(200..<300).contains(http.statusCode) {
       let body = (try? Data(contentsOf: tmp)) ?? Data()

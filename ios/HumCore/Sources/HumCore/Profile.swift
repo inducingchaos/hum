@@ -25,6 +25,21 @@ public struct Profile: Codable, Equatable, Sendable {
   public var artQuery: String?
   public var defaultFilter: String?
 
+  public init(
+    label: String, root: String, tracks: String, metadata: String, dimensions: [String], order: [String]? = nil,
+    variant: Variant? = nil, artQuery: String? = nil, defaultFilter: String? = nil
+  ) {
+    self.label = label
+    self.root = root
+    self.tracks = tracks
+    self.metadata = metadata
+    self.dimensions = dimensions
+    self.order = order
+    self.variant = variant
+    self.artQuery = artQuery
+    self.defaultFilter = defaultFilter
+  }
+
   public var tracksDir: String { Self.join(root, tracks) }
   public var metadataDir: String { Self.join(root, metadata) }
 

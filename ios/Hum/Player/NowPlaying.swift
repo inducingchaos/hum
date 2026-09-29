@@ -61,9 +61,7 @@ final class NowPlaying {
     ]
     if duration > 0 { info[MPMediaItemPropertyPlaybackDuration] = duration }
     if let art { info[MPMediaItemPropertyArtwork] = Self.artwork(art) }
-    let center = MPNowPlayingInfoCenter.default()
-    center.nowPlayingInfo = info
-    center.playbackState = playing ? .playing : .paused
+    MPNowPlayingInfoCenter.default().nowPlayingInfo = info
   }
 
   func clear() {
