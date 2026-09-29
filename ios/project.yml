@@ -1,0 +1,93 @@
+# XcodeGen spec (docs/plan-ios.md §12): `cd ios && xcodegen` makes Hum.xcodeproj.
+# The generated project is gitignored; this file is the source of truth.
+name: Hum
+options:
+  bundleIdPrefix: com.rileybarabash
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+packages:
+  HumCore:
+    path: HumCore
+targets:
+  Hum:
+    type: application
+    platform: iOS
+    sources:
+      - path: Hum
+    dependencies:
+      - package: HumCore
+    info:
+      path: Hum/Info.plist
+      properties:
+        CFBundleDisplayName: hum
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        UIBackgroundModes: [audio]
+        UIApplicationSupportsIndirectInputEvents: true
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIAppFonts: [GeistMono-Regular.ttf, GeistMono-SemiBold.ttf]
+        ITSAppUsesNonExemptEncryption: false
+        HumBuild: $(HUM_BUILD)
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.rileybarabash.hum
+        PRODUCT_NAME: Hum
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+        SWIFT_APPROACHABLE_CONCURRENCY: YES
+        HUM_BUILD: dev
+    postBuildScripts:
+      # The library profile never enters git (docs/profile.md). If it's at the
+      # repo root at build time, the app gets a copy and skips the paste step.
+      - name: Bundle profile.local.json
+        basedOnDependencyAnalysis: false
+        script: |
+          SRC="${SRCROOT}/../profile.local.json"
+          DST="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/profile.local.json"
+          if [ -f "$SRC" ]; then cp "$SRC" "$DST"; else rm -f "$DST"; fi
+  HumTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [HumTests]
+    dependencies:
+      - target: Hum
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.rileybarabash.hum.tests
+        SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+  HumUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [HumUITests]
+    dependencies:
+      - target: Hum
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.rileybarabash.hum.uitests
+        TEST_TARGET_NAME: Hum
+schemes:
+  Hum:
+    build:
+      targets:
+        Hum: all
+        HumTests: [test]
+        HumUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets: [HumTests, HumUITests]

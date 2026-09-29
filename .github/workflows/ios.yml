@@ -1,0 +1,113 @@
+# iOS CI (docs/plan-ios.md §11): HumCore tests, then the app's unit + UI tests
+# on the newest iPhone Simulator. Screenshots of both looks are uploaded as the
+# `screenshots` artifact. Runs only while the repo is public (free macOS minutes).
+name: ios
+
+on:
+  push:
+    branches: [main, "claude/**"]
+    paths: ["ios/**", "test/cases/**", ".github/workflows/ios.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    if: ${{ !github.event.repository.private }}
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pick the newest Xcode 26
+        run: |
+          XCODE=$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)
+          echo "Using $XCODE"
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+          swift --version
+
+      - name: HumCore tests
+        working-directory: ios/HumCore
+        run: swift test
+
+      - name: Generate the Xcode project
+        working-directory: ios
+        run: |
+          command -v xcodegen >/dev/null || brew install xcodegen
+          xcodegen generate
+
+      - name: Pick a Simulator
+        id: sim
+        run: |
+          ID=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys, re
+          d = json.load(sys.stdin)["devices"]
+          best = None
+          for rt, devs in d.items():
+              m = re.search(r"iOS-(\d+)-(\d+)", rt)
+              if not m: continue
+              v = (int(m.group(1)), int(m.group(2)))
+              for dev in devs:
+                  if not dev["name"].startswith("iPhone") or "Pro Max" in dev["name"] or "Plus" in dev["name"] or " e" in dev["name"]: continue
+                  key = (v, dev["name"])
+                  if best is None or key > best[0]: best = (key, dev["udid"], dev["name"])
+          print(best[1]); print(best[2], file=sys.stderr); print(best[0], file=sys.stderr)
+          ')
+          echo "id=$ID" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$ID" || true
+
+      - name: Build and test
+        working-directory: ios
+        run: |
+          mkdir -p build
+          set +e
+          xcodebuild test \
+            -project Hum.xcodeproj -scheme Hum \
+            -destination "id=${{ steps.sim.outputs.id }}" \
+            -resultBundlePath build/Hum.xcresult \
+            HUM_BUILD="${GITHUB_SHA::7}" \
+            CODE_SIGNING_ALLOWED=NO \
+            > build/xcodebuild.log 2>&1
+          STATUS=$?
+          grep -E "error:|warning: .*/ios/Hum|Test (Case|Suite) .*(passed|failed)|✔ Test|✘ Test|\*\* (BUILD|TEST) " build/xcodebuild.log | tail -400
+          exit $STATUS
+
+      - name: Export screenshots
+        if: always()
+        working-directory: ios
+        run: |
+          mkdir -p build/screenshots
+          if [ -d build/Hum.xcresult ]; then
+            xcrun xcresulttool export attachments --path build/Hum.xcresult --output-path build/attachments || true
+            python3 - <<'PY'
+          import json, os, shutil
+          src = "build/attachments"; dst = "build/screenshots"
+          try:
+              manifest = json.load(open(os.path.join(src, "manifest.json")))
+          except Exception as e:
+              print("no manifest:", e); manifest = []
+          for test in manifest:
+              for a in test.get("attachments", []):
+                  name = a.get("suggestedHumanReadableName") or a["exportedFileName"]
+                  name = name.split("_0_")[0] + os.path.splitext(a["exportedFileName"])[1]
+                  shutil.copy(os.path.join(src, a["exportedFileName"]), os.path.join(dst, name))
+                  print(name)
+          PY
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: ios/build/screenshots
+          if-no-files-found: ignore
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: xcodebuild-log
+          path: ios/build/xcodebuild.log
+          if-no-files-found: ignore

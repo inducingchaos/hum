@@ -9,3 +9,9 @@ node_modules/
 .DS_Store
 *.local.json
 *.local.xcconfig
+ios/Hum.xcodeproj/
+ios/Hum/Info.plist
+ios/build/
+ios/HumCore/.build/
+xcuserdata/
+*.xcresult

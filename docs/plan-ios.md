@@ -126,7 +126,7 @@ Shared screens: sign-in (profile paste → Dropbox), syncing, player. Tabs: **No
 ## 9. Demo mode (Simulator, CI, screenshots)
 
 Launch argument `-demo YES`: a made-up library (the test taxonomy), short sine-tone WAV files generated on
-the fly, no network, no sign-in. `-look native|terminal` picks the look. The UI tests use it to play, skip,
+the fly, no network, no sign-in. `-initialLook native|terminal` picks the look. The UI tests use it to play, skip,
 filter and let a track end (gapless boundary), and to take screenshots of both looks.
 
 ## 10. Errors and edge cases
