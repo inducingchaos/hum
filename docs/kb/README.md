@@ -43,7 +43,8 @@ CLI done. PWA frozen. **Phase 3: native iOS app** (`docs/plan-ios.md`).
 - [x] I1 HumCore Swift port + shared test cases (`test/cases/core-cases.json`, run by bun and swift): 22 Swift tests green on Linux + macOS
 - [x] I2 App: Dropbox auth + sync, player engine, lock screen, cache (compiles on CI, Xcode 26.6)
 - [x] I3 Two looks (native / terminal) + demo mode + Simulator screenshots in CI: all green at `47db32b`
-- [ ] I4 Owner: Simulator pass (Xcode or computer use) · I5 device checklist (plan-ios §13): **waiting on the owner**
+- [x] I4 Owner: Simulator pass (turn 17, demo mode)
+- [ ] I5 Device: first round done (turn 17, fixes pushed); owner keeps testing (lock screen, AirPlay, Bluetooth, long session)
 
 **Next:** see the latest `log.md` entry.
 
