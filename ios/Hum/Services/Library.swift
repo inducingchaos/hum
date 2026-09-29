@@ -98,25 +98,23 @@ final class LibrarySync {
     return full
   }
 
+  // Metadata one file at a time, 12 in flight (the fallback when the zip fails).
   private func fetchMetas(_ stems: [String], progress: ((Int) -> Void)? = nil) async throws -> [String: Data] {
     var out: [String: Data] = [:]
-    var done = 0
-    var next = 0
+    let dropbox = self.dropbox
     let dir = profile.metadataDir
-    try await withThrowingTaskGroup(of: (String, Data?).self) { group in
-      func add() {
-        guard next < stems.count else { return }
-        let stem = stems[next]
-        next += 1
-        group.addTask { @MainActor in (stem, try? await self.dropbox.downloadData("\(dir)/\(stem).json")) }
+    for start in stride(from: 0, to: stems.count, by: 12) {
+      let chunk = Array(stems[start..<min(start + 12, stems.count)])
+      let got = await withTaskGroup(of: (String, Data?).self, returning: [(String, Data?)].self) { group in
+        for stem in chunk {
+          group.addTask { @MainActor in (stem, try? await dropbox.downloadData("\(dir)/\(stem).json")) }
+        }
+        var results: [(String, Data?)] = []
+        for await r in group { results.append(r) }
+        return results
       }
-      for _ in 0..<12 { add() }
-      while let (stem, data) = try await group.next() {
-        if let data { out[stem.lowercased()] = data }
-        done += 1
-        progress?(done)
-        add()
-      }
+      for (stem, data) in got { if let data { out[stem.lowercased()] = data } }
+      progress?(min(start + 12, stems.count))
     }
     return out
   }

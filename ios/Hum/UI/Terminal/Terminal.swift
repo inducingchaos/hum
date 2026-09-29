@@ -468,7 +468,7 @@ struct TermSys: View {
         Text("Log · newest first · [bg] = locked or in the background").term(Term.dim)
           .padding(.horizontal, Term.px).padding(.top, Term.py * 2).padding(.bottom, Term.py)
         ForEach(Array(EventLog.shared.lines.reversed().enumerated()), id: \.offset) { _, l in
-          (Text(EventLog.clock(l.t)).foregroundColor(Term.dim) + Text("\(l.bg ? " [bg]" : "") \(l.msg)").foregroundColor(l.bg ? Term.mid : Term.fg))
+          Text("\(Text(EventLog.clock(l.t)).foregroundStyle(Term.dim))\(Text("\(l.bg ? " [bg]" : "") \(l.msg)").foregroundStyle(l.bg ? Term.mid : Term.fg))")
             .font(Term.font())
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, Term.px)
