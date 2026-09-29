@@ -55,6 +55,9 @@ nonisolated struct SavedState: Codable, Sendable {
   private var loadToken = 0
   private var nextToken = 0
   private var failuresInARow = 0
+  // Play/pause intent while a load is still resolving its URL: a tap on Play
+  // right after launch used to land on an empty player and be lost.
+  private var wantsPlay = false
   private var lastSave = Date.distantPast
   private let persist: Bool
   static let historyMax = 200
@@ -182,11 +185,15 @@ nonisolated struct SavedState: Codable, Sendable {
 
   func play() {
     guard current != nil else { return }
+    wantsPlay = true
     activateSession()
-    engine.play()
+    if engine.currentId == current?.id { engine.play() }
   }
 
-  func pause() { engine.pause() }
+  func pause() {
+    wantsPlay = false
+    engine.pause()
+  }
   func toggle() { playing ? pause() : play() }
 
   func next() {
@@ -266,14 +273,15 @@ nonisolated struct SavedState: Codable, Sendable {
     artwork = art.cached(t.id)
     loadToken += 1
     let token = loadToken
+    wantsPlay = autoplay
     log("load \(t.name)\(at > 0 ? " at \(Int(at)) s" : "")\(autoplay ? "" : " (paused)")")
     updateNowPlaying()
     Task {
       do {
         let url = try await resolve(t)
         guard token == loadToken else { return }
-        if autoplay { activateSession() }
-        engine.load(t.id, url: url, at: at, autoplay: autoplay)
+        if wantsPlay { activateSession() }
+        engine.load(t.id, url: url, at: at, autoplay: wantsPlay)
         failuresInARow = 0
         sendNext()
       } catch {
@@ -359,6 +367,7 @@ nonisolated struct SavedState: Codable, Sendable {
 
   private func ended() {
     playing = false
+    wantsPlay = false
     say("END OF QUEUE")
     updateNowPlaying()
   }

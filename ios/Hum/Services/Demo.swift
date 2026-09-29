@@ -81,7 +81,7 @@ final class DemoSource: TrackSource {
   private let dir = Store.subdir(Store.caches, "demo")
 
   private func file(_ t: Track) async -> URL {
-    let u = dir.appendingPathComponent(t.fileName)
+    let u = dir.appendingPathComponent("\(Int(t.duration))s-\(t.fileName)")  // short and normal demo tracks differ
     if FileManager.default.fileExists(atPath: u.path) { return u }
     let hz = 196 + Double(Demo.stableHash(t.id) % 12) * 22
     let seconds = t.duration
