@@ -156,3 +156,10 @@ Created the private GitHub repo (now `inducingchaos/hum`, public since turn 16) 
 - Owner questions answered in chat: haptics (manual `UIImpactFeedbackGenerator`, plain SwiftUI buttons, no hidden tab bar), TestFlight for other people (internal testers need no review; external testers need a light beta review), Expo vs a Swift client for a complex TS API (codegen a Swift client from an OpenAPI/JSON schema; no JS runtime needed).
 - **Mac-only suites changed** (CLI sync path, e2e script): owner reruns `pnpm test:e2e`, and `pnpm sync` once to see the zip path (delete `.cache/meta` first to see it from scratch).
 - **Next:** owner keeps testing on the phone; anything else is their call.
+
+## 2026-09-29 · Turn 18: Swift vs Expo for the owner's next app (model: Opus 5.5)
+
+- Question only, no code change. The owner asked whether their next app (a schema-driven, database-style data app with a TS backend using oRPC, Effect, Better Auth, streaming AI chat, realtime, server-driven "mini app" screens) should be native Swift/SwiftUI like hum or Expo.
+- Answered in chat. Summary: Swift is viable; contract-first (oRPC → OpenAPI → swift-openapi-generator in CI), a UI-free Swift package for logic (like `ios/HumCore`, tested with `swift test`), a local SQLite store + mutation outbox instead of TanStack Query, SSE/WebSocket via URLSession, ASWebAuthenticationSession + Keychain for auth, a Codable node tree + component registry for server-driven screens (doubles as the OTA path), `NavigationStack(path:)` with hidden chrome + the swipe-back fix, `ButtonStyle` + `.sensoryFeedback` for flat buttons (as `TermPress`), shared JSON test fixtures for TS/Swift parity (as `test/cases/core-cases.json`). Main costs vs Expo: Android, a rich block editor, the data layer, slower compile loop.
+- Fact for future agents: hum's Terminal look uses no `NavigationStack` (tabs are an enum + `switch`); the Native look does.
+- **Next:** unchanged from turn 17.
