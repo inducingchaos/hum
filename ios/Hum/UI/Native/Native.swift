@@ -314,10 +314,16 @@ struct NativeFilter: View {
     NavigationStack {
       Form {
         Section {
-          TextField("Everything", text: $draft)
-            .textInputAutocapitalization(.never).autocorrectionDisabled().submitLabel(.go)
-            .onSubmit(apply)
-            .accessibilityIdentifier("filter.field")
+          HStack {
+            TextField("Everything", text: $draft)
+              .textInputAutocapitalization(.never).autocorrectionDisabled().submitLabel(.go)
+              .onSubmit(apply)
+              .accessibilityIdentifier("filter.field")
+            if !words.isEmpty {
+              Button("Clear", systemImage: "xmark.circle.fill") { draft = "" }
+                .labelStyle(.iconOnly).foregroundStyle(.secondary).buttonStyle(.plain)
+            }
+          }
         } footer: {
           Text("Same row = either, different rows = all. `fav` = liked songs.")
         }
@@ -346,9 +352,6 @@ struct NativeFilter: View {
         ToolbarItem(placement: .cancellationAction) { Button("Cancel", systemImage: "xmark") { dismiss() } }
         ToolbarItem(placement: .confirmationAction) {
           Button("Play", systemImage: "play.fill", action: apply).accessibilityIdentifier("filter.apply")
-        }
-        ToolbarItem(placement: .bottomBar) {
-          Button("Clear") { draft = "" }.disabled(words.isEmpty)
         }
       }
     }
