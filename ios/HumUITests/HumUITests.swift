@@ -67,9 +67,13 @@ final class HumUITests: XCTestCase {
     app.buttons["next"].tap()
     XCTAssertTrue(waitForChange(title, from: first))
     app.buttons["filter"].tap()
-    XCTAssertTrue(app.buttons["chip.noon"].waitForExistence(timeout: 5))
-    app.buttons["chip.noon"].tap()
+    let field = app.textFields["filter.field"]
+    let opened = field.waitForExistence(timeout: 5)
     shot("native-2-filter")
+    XCTAssertTrue(opened, "the filter sheet should open")
+    let chip = app.buttons["chip.noon"]
+    XCTAssertTrue(chip.waitForExistence(timeout: 5), "chips: \(app.buttons.allElementsBoundByIndex.map(\.identifier))")
+    chip.tap()
     app.buttons["filter.apply"].tap()
     XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'noon /'")).firstMatch.waitForExistence(timeout: 5))
     shot("native-3-filtered")

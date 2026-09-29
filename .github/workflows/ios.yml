@@ -86,7 +86,7 @@ jobs:
           if [ -d build/Hum.xcresult ]; then
             xcrun xcresulttool export attachments --path build/Hum.xcresult --output-path build/attachments || true
             python3 - <<'PY'
-          import json, os, shutil
+          import json, os, re, shutil
           src = "build/attachments"; dst = "build/screenshots"
           try:
               manifest = json.load(open(os.path.join(src, "manifest.json")))
@@ -95,7 +95,11 @@ jobs:
           for test in manifest:
               for a in test.get("attachments", []):
                   name = a.get("suggestedHumanReadableName") or a["exportedFileName"]
-                  name = name.split("_0_")[0] + os.path.splitext(a["exportedFileName"])[1]
+                  ext = os.path.splitext(a["exportedFileName"])[1]
+                  name = name.split("_0_")[0]
+                  if not name.endswith(ext): name += ext
+                  if ext == ".mp4": continue  # screen recordings: large, not needed
+                  name = re.sub(r'[\\/:*?"<>|\r\n`]', "_", name)  # artifact-safe
                   shutil.copy(os.path.join(src, a["exportedFileName"]), os.path.join(dst, name))
                   print(name)
           PY
