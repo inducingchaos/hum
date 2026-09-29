@@ -63,12 +63,15 @@ jobs:
         working-directory: ios
         run: |
           mkdir -p build
+          # Report every compile error in one run, not just the first file's.
+          defaults write com.apple.dt.Xcode IDEBuildingContinueBuildingAfterErrors -bool YES
           set +e
           xcodebuild test \
             -project Hum.xcodeproj -scheme Hum \
             -destination "id=${{ steps.sim.outputs.id }}" \
             -resultBundlePath build/Hum.xcresult \
             HUM_BUILD="${GITHUB_SHA::7}" \
+            SWIFT_COMPILATION_MODE=wholemodule \
             CODE_SIGNING_ALLOWED=NO \
             > build/xcodebuild.log 2>&1
           STATUS=$?

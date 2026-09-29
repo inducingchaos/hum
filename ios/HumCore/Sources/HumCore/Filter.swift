@@ -10,10 +10,21 @@ public struct TermResult: Equatable, Sendable {
   public var term: String
   public var kind: TermKind
   public var matches: [String]
+
+  public init(term: String, kind: TermKind, matches: [String]) {
+    self.term = term
+    self.kind = kind
+    self.matches = matches
+  }
 }
 
 public struct ParsedFilter: Equatable, Sendable {
   public var terms: [TermResult]
+
+  public init(terms: [TermResult]) {
+    self.terms = terms
+  }
+
   public var ok: Bool { terms.allSatisfy { $0.kind == .ok } }
   public static let empty = ParsedFilter(terms: [])
 }
