@@ -29,7 +29,8 @@ export function idOf(stem: string): string {
 
 // Fallback display name when metadata is missing: "some-song-<id>" → "Some Song".
 export function nameFromStem(stem: string): string {
-  const slug = stem.slice(0, stem.lastIndexOf("-")) || stem;
+  const i = stem.lastIndexOf("-");
+  const slug = i > 0 ? stem.slice(0, i) : stem; // no hyphen: the whole stem (was cut by one letter)
   return slug
     .split("-")
     .filter(Boolean)

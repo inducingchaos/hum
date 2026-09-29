@@ -1,0 +1,69 @@
+{
+  "about": "Shared cases for packages/core (bun test) and ios/HumCore (swift test). Made-up taxonomy: two songs in every folder of `library`.",
+  "library": {
+    "folders": {
+      "dawn": ["amber", "azure", "crimson", "gold", "grey", "indigo", "jade", "lime", "navy", "ochre", "sea-green"],
+      "fog": ["azure", "grey", "ochre"],
+      "midnight": ["azure", "grey", "ochre"],
+      "noon": ["azure", "ochre"]
+    },
+    "levels": ["dark", "light", "mid"]
+  },
+  "filter": [
+    { "query": "grey dark", "folders": ["dawn/grey/dark", "fog/grey/dark", "midnight/grey/dark"] },
+    { "query": "dawn azure indigo", "folders": ["dawn/azure/dark", "dawn/azure/light", "dawn/azure/mid", "dawn/indigo/dark", "dawn/indigo/light", "dawn/indigo/mid"] },
+    { "query": "noon fog ochre light", "folders": ["fog/ochre/light", "noon/ochre/light"] },
+    { "query": "noon ochre", "folders": ["noon/ochre/dark", "noon/ochre/light", "noon/ochre/mid"] },
+    { "query": "DAWN Jade LIGHT", "folders": ["dawn/jade/light"] },
+    { "query": "all noon ochre", "folders": ["noon/ochre/dark", "noon/ochre/light", "noon/ochre/mid"] },
+    { "query": "seagreen mid", "folders": ["dawn/sea-green/mid"] }
+  ],
+  "counts": [
+    { "query": "", "count": 114 },
+    { "query": "dark", "count": 38 },
+    { "query": "*", "count": 114 }
+  ],
+  "resolve": [
+    { "term": "mid", "kind": "ok", "matches": ["mid"] },
+    { "term": "mi", "kind": "ambiguous", "matches": ["mid", "midnight"] },
+    { "term": "li", "kind": "ambiguous", "matches": ["light", "lime"] },
+    { "term": "gre", "kind": "ok", "matches": ["grey"] },
+    { "term": "midn", "kind": "ok", "matches": ["midnight"] },
+    { "term": "seagreen", "kind": "ok", "matches": ["sea-green"] },
+    { "term": "green", "kind": "ok", "matches": ["sea-green"] },
+    { "term": "sea", "kind": "ok", "matches": ["sea-green"] },
+    { "term": "favourites", "kind": "ok", "matches": ["fav"] },
+    { "term": "fa", "kind": "ok", "matches": ["fav"] },
+    { "term": "f", "kind": "ambiguous", "matches": ["fav", "fog"] },
+    { "term": "jazz", "kind": "none", "matches": [] }
+  ],
+  "complete": [
+    { "in": "grey dar", "out": "grey dark " },
+    { "in": "mi", "out": "mid" },
+    { "in": "x", "out": "x" },
+    { "in": "dawn ", "out": "dawn " }
+  ],
+  "search": {
+    "tracks": [
+      { "name": "Paper Drifts", "tags": [] },
+      { "name": "Drift Away", "tags": [] },
+      { "name": "Lantern Hall", "tags": ["Drifting"] },
+      { "name": "Far Orbit", "tags": ["Calm"] },
+      { "name": "Sunset Drift", "tags": [] }
+    ],
+    "cases": [
+      { "query": "drift", "names": ["Drift Away", "Paper Drifts", "Sunset Drift", "Lantern Hall"] },
+      { "query": "far calm", "names": ["Far Orbit"] },
+      { "query": "far nope", "names": [] }
+    ]
+  },
+  "normalize": [
+    { "stem": "quiet-harbour-0123abcd", "id": "0123abcd", "name": "Quiet Harbour" },
+    { "stem": "solo", "id": "solo", "name": "Solo" }
+  ],
+  "time": [
+    { "sec": 0, "out": "0:00" },
+    { "sec": 65.9, "out": "1:05" },
+    { "sec": 3725, "out": "1:02:05" }
+  ]
+}
