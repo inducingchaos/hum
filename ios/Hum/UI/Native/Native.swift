@@ -86,12 +86,15 @@ struct NativeNow: View {
       ScrollView {
         VStack(alignment: .leading, spacing: 20) {
           Artwork(image: p.artwork)
-            .frame(maxWidth: 320)
+            .frame(maxWidth: 240)
             .frame(maxWidth: .infinity)
             .shadow(color: .black.opacity(0.25), radius: 20, y: 10)
           VStack(alignment: .leading, spacing: 4) {
             Text(p.current?.name ?? "—").font(.title2.weight(.bold)).accessibilityIdentifier("title")
             Text(p.current?.album ?? "").font(.subheadline).foregroundStyle(.secondary)
+            if !app.syncStatus.isEmpty {
+              Text(app.syncStatus).font(.caption.monospacedDigit()).foregroundStyle(.tertiary).lineLimit(1)
+            }
           }
           scrubber
           transport
@@ -108,10 +111,9 @@ struct NativeNow: View {
       .navigationTitle("hum")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
-        if !app.syncStatus.isEmpty {
-          ToolbarItem(placement: .topBarLeading) {
-            Text(app.syncStatus).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-          }
+        ToolbarItem(placement: .topBarLeading) {
+          Button("Filter", systemImage: "line.3.horizontal.decrease") { showFilter = true }
+            .accessibilityIdentifier("filter")
         }
         ToolbarItem(placement: .topBarTrailing) {
           RoutePicker().frame(width: 32, height: 32)
@@ -214,7 +216,7 @@ struct NativeNow: View {
       .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 16))
     }
     .buttonStyle(.plain)
-    .accessibilityIdentifier("filter")
+    .accessibilityIdentifier("filter.row")
   }
 
   private var upNext: some View {
